@@ -1,88 +1,51 @@
 # SpecFix
 
-A [CounterStrikeSharp](https://docs.cssharp.dev/) plugin for Counter-Strike 2 that fixes the **"phantom body"** problem in spectator mode.
+Плагин [CounterStrikeSharp](https://docs.cssharp.dev/) для CS2, который убирает «фантомное тело» в режиме наблюдателя.
 
-When a live player switches to the spectators through the normal team menu, CS2 leaves their old player pawn behind as a persistent dead body. That leftover body is invisible-but-selectable, so while spectating you can get "stuck" watching an empty corpse — complete with its name and avatar in the HUD. SpecFix takes over the spectator switch cycle so the camera **never lands on that phantom body**.
+Когда живой игрок уходит в спектаторы через меню, CS2 оставляет его старое тело как невидимый труп. При переключении камеры можно «залипнуть» на этом трупе — с его ником и аватаркой в HUD. SpecFix перехватывает переключение так, чтобы камера **никогда не вставала на фантомное тело**.
 
-## Features
+## Возможности
 
-- Skips the phantom body when cycling spectator targets with left/right click (`spec_next` / `spec_prev`) — no flicker, no HUD glitch, no camera lock.
-- Reactive safety net for the free-roam → click-to-lock case (`spec_mode`): if the engine lands the camera on your own leftover body, it is immediately bumped to a live player, while still respecting the target you aimed at.
-- **Crash-safe by design.** It never calls `Remove()`, never swaps controller handles, and never teleports the player, so rejoining a team can never crash. It only redirects the observer target, networked the correct way (marking `m_pObserverServices` dirty on `CBasePlayerPawn`).
-- Admin command to toggle the fix on the fly.
-- Configurable and localizable.
+- Пропускает фантома при листании целей ЛКМ/ПКМ (`spec_next` / `spec_prev`) — без мерцания, глюка HUD и залипания.
+- Подстраховка для свободной камеры (`spec_mode`): если движок всё же навёл камеру на твоё старое тело, она сразу перекидывается на живого игрока.
+- **Безопасно.** Не использует `Remove()`, не подменяет хэндлы, не телепортирует игрока — возврат за команду не крашит. Меняется только цель наблюдателя.
+- Команда для включения/выключения на лету.
+- Настраивается и локализуется.
 
-## How it works
+## Требования
 
-The phantom is the dead `CCSPlayerPawn` that persists while its owning controller sits in spectators. SpecFix does not try to delete it (that path crashes on rejoin); instead it controls where the spectator camera is allowed to go:
+- Сервер CS2 с [Metamod:Source](https://www.sourcemm.net/)
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
 
-| Input | Command | Behavior |
-| --- | --- | --- |
-| Left click | `spec_next` | Plugin picks the next **live** player itself and blocks the engine's own selection. |
-| Right click | `spec_prev` | Plugin picks the previous **live** player itself and blocks the engine's own selection. |
-| Space (mode) | `spec_mode` | Not blocked. One tick later, if the camera landed on your own phantom body, it is redirected to a live player. |
+## Установка
 
-## Requirements
+1. Скачай архив из [Releases](https://github.com/Nip0s/cs2-SpecFix/releases).
+2. Распакуй содержимое в `game/csgo/addons/counterstrikesharp/` (папки `plugins` и `configs` встанут на свои места).
+3. Перезапусти сервер или выполни `css_plugins load SpecFix`.
 
-- Counter-Strike 2 dedicated server with [Metamod:Source](https://www.sourcemm.net/)
-- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) (built against API `1.0.369`)
+## Настройка
 
-## Installation
+Конфиг: `addons/counterstrikesharp/configs/plugins/SpecFix/SpecFix.json`
 
-1. Download the latest release, or build from source (see below).
-2. Copy the `SpecFix` folder into `game/csgo/addons/counterstrikesharp/plugins/`.
-
-   The final layout should look like:
-
-   ```
-   addons/counterstrikesharp/plugins/SpecFix/
-   ├── SpecFix.dll
-   └── lang/
-       ├── en.json
-       └── ru.json
-   ```
-3. Restart the server or load the plugin with `css_plugins load SpecFix`.
-
-## Configuration
-
-On first load the plugin generates `addons/counterstrikesharp/configs/plugins/SpecFix/SpecFix.json`:
-
-```json
-{
-  "Enabled": true,
-  "DebugLog": true,
-  "Version": 2
-}
-```
-
-| Option | Type | Default | Description |
+| Параметр | Тип | По умолч. | Описание |
 | --- | --- | --- | --- |
-| `Enabled` | bool | `true` | Master switch for the fix. |
-| `DebugLog` | bool | `true` | Prints a line to the server console whenever the camera is redirected away from a phantom. |
+| `Enabled` | bool | `true` | Включить/выключить плагин. |
+| `DebugLog` | bool | `true` | Писать в консоль при переносе камеры с фантома. |
 
-## Commands
+## Команды
 
-| Command | Permission | Description |
+| Команда | Права | Описание |
 | --- | --- | --- |
-| `css_specfix [on\|off]` | `@css/generic` | Toggles the fix. With no argument it flips the current state. |
+| `css_specfix [on\|off]` | `@css/generic` | Вкл/выкл. Без аргумента — переключает состояние. |
 
-## Localization
-
-Language files live in `lang/`. `en.json` and `ru.json` are included; add your own by copying one of them and translating the values.
-
-## Building from source
+## Сборка
 
 ```bash
 dotnet build -c Release
 ```
 
-The build produces a ready-to-upload bundle at `bin/Release/net10.0/bundle/plugins/SpecFix/`. Copy that `SpecFix` folder straight into your server's `plugins/` directory.
+Готовый бандл: `bin/Release/net10.0/bundle/`.
 
-## License
+## Автор
 
-MIT
-
-## Credits
-
-- Author: **Nip0s**
-- Built with [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp).
+**Nip0s** · лицензия MIT
