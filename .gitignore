@@ -1,0 +1,16 @@
+# Build output
+bin/
+obj/
+
+# Backup folders
+SpecFix_BACKUP_*/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+
+# OS
+Thumbs.db
+.DS_Store
